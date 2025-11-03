@@ -13,25 +13,35 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Middlewares
-app.use(cors());
-app.use(express.json()); // parse JSON bodies
+// ✅ Robust Middlewares
+app.use(cors({ origin: true, credentials: true })); // allow cross-origin requests
+app.use(express.json({ limit: '10mb' })); // parse JSON bodies safely
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // parse form data
 
-// Serve uploaded images statically
-// Make sure this matches the uploads folder used in analysis.js
+// ✅ Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// API routes
+// ✅ Basic logging for debugging
+app.use((req, res, next) => {
+  console.log(`➡️  ${req.method} ${req.url}`);
+  console.log('Request Body:', req.body);
+  next();
+});
+
+// ✅ API Routes
 app.use('/api/analysis', analysisRouter);
 
-// Health check
+// ✅ Health check route
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/cropdb';
+// ✅ MongoDB Connection
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://ravisekharreddy5419_db_user:msdproject123@cluster0.qffzxow.mongodb.net/?appName=Cluster0';
 
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log('✅ Connected to MongoDB at', MONGO_URI);
     const port = process.env.PORT || 5000;
